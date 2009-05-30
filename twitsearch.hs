@@ -7,10 +7,10 @@ import Text.JSON
 
 ----- Data types -----
 
-data SearchResults = SearchResults [SearchResult]
+data SearchResults = SearchResults [Tweet]
   deriving (Show)
 
-data SearchResult = SearchResult String
+data Tweet = Tweet String
   deriving (Show)
 
 
@@ -20,9 +20,12 @@ instance JSON SearchResults where
   showJSON _ = error "Not implemented"
   readJSON = readJSONSearchResults
 
-instance JSON SearchResult where
+instance JSON Tweet where
   showJSON _ = error "Not implemented"
-  readJSON = readJSONSearchResult
+  readJSON = readJSONTweet
+
+
+----- Dealing with search results -----
 
 
 ----- JSON parsing -----
@@ -34,8 +37,8 @@ readJSONSearchResults (JSObject value) = Ok $ SearchResults results
     -- TODO handle missing 'results' property
     Ok results = readJSONs jsValues
 
-readJSONSearchResult :: JSValue -> Result SearchResult
-readJSONSearchResult (JSObject value) = Ok $ SearchResult text
+readJSONTweet :: JSValue -> Result Tweet
+readJSONTweet (JSObject value) = Ok $ Tweet text
     where
     Just (JSString jsText) = lookup "text" $ fromJSObject value
     -- TODO handle missing 'text' property
