@@ -26,7 +26,11 @@ instance JSON Tweet where
 
 
 ----- Dealing with search results -----
+tweets :: SearchResults -> [Tweet]
+tweets (SearchResults tws) = tws
 
+tweetText :: Tweet -> String
+tweetText (Tweet text) = text
 
 ----- JSON parsing -----
 
