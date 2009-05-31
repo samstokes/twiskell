@@ -7,6 +7,12 @@ import Text.JSON
 
 ----- Data types -----
 
+data SearchOptions = SearchOptions {
+    resultsPerPage :: Integer,
+    searchQuery :: String
+  }
+  deriving (Show)
+
 data SearchResults = SearchResults [Tweet]
   deriving (Show)
 
@@ -28,7 +34,10 @@ instance JSON Tweet where
   readJSON = readJSONTweet
 
 
------ Dealing with search results -----
+----- Data type helper functions -----
+basicOptions :: String -> SearchOptions
+basicOptions = SearchOptions 15
+
 tweets :: SearchResults -> [Tweet]
 tweets (SearchResults tws) = tws
 
@@ -55,11 +64,11 @@ readJSONTweet (JSObject value) = Ok $ Tweet text fromUser
 
 ----- Search functions -----
 
-search :: String -> IO SearchResults
+search :: SearchOptions -> IO SearchResults
 search = searchJSON
 -- TODO handle malformed response
 
-searchJSON :: JSON a => String -> IO a
+searchJSON :: JSON a => SearchOptions -> IO a
 searchJSON = (liftM forceDecode) . searchBody
 
 -- decodes a JSON string, throwing a runtime error if unable to decode.
@@ -69,26 +78,30 @@ forceDecode str =
   where
     Ok json = decode str
 
-searchBody :: String -> IO String
-searchBody searchTerms =
+searchBody :: SearchOptions -> IO String
+searchBody options =
     do
-    Right resp <- simpleHTTP $ searchRequest searchTerms
+    Right resp <- simpleHTTP $ searchRequest options
     -- TODO handle failed request
     return $ rspBody resp
 
-searchRequest :: String -> Request String
-searchRequest searchTerms = Request {
-  rqURI = searchURI searchTerms,
+searchRequest :: SearchOptions -> Request String
+searchRequest options = Request {
+  rqURI = searchURI options,
   rqMethod = GET,
   rqHeaders = [],
   rqBody = ""
   }
 
-searchURI :: String -> URI
-searchURI searchTerms =
+searchURI :: SearchOptions -> URI
+searchURI options =
   uri
   where
     Just uri = parseURI (searchBase ++ "?" ++ params) -- this shouldn't fail
-    params = urlEncodeVars [("q", searchTerms)]
+    params = urlEncodeVars $ searchParams options
 
 searchBase = "http://search.twitter.com/search.json"
+
+searchParams :: SearchOptions -> [(String, String)]
+searchParams options = [("q", searchQuery options),
+                        ("rpp", show $ resultsPerPage options)]

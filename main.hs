@@ -14,7 +14,7 @@ main = do
   if (null args)
     then err "Usage: twitsearch term [term ...]"
     else do
-      results <- search $ unwords args
+      results <- search $ basicOptions $ unwords args
       sequence $ map putStrLn $ map formatTweet $ tweets results
 
 err :: String -> IO a
