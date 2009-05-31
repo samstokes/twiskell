@@ -1,4 +1,5 @@
 module Main where
+import Data.List
 import System.Console.GetOpt
 import System.Environment (getArgs)
 import System.Exit (exitFailure)
@@ -9,6 +10,9 @@ import Twitter.Search
 formatTweet :: Tweet -> String
 formatTweet tweet = '@' : fromUser tweet ++ ": " ++ tweetText tweet
 
+tweeters :: SearchResults -> [String]
+tweeters = nub . sort . map fromUser . tweets
+
 ----- Handy command-line search client -----
 usage = "Usage: twitsearch <OPTIONS> term [term ...]"
 
@@ -16,6 +20,9 @@ main = do
   args <- getArgs
   options <- parseArgs args
   results <- search options
+  putStr "Tweeting about this: "
+  putStrLn $ intercalate ", " $ tweeters results
+  putStrLn $ take 80 $ repeat '-'
   sequence $ map putStrLn $ map formatTweet $ tweets results
 
 options :: [OptDescr Integer]
