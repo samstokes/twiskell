@@ -10,7 +10,10 @@ import Text.JSON
 data SearchResults = SearchResults [Tweet]
   deriving (Show)
 
-data Tweet = Tweet String
+data Tweet = Tweet {
+    tweetText :: String,
+    fromUser :: String
+  }
   deriving (Show)
 
 
@@ -29,9 +32,6 @@ instance JSON Tweet where
 tweets :: SearchResults -> [Tweet]
 tweets (SearchResults tws) = tws
 
-tweetText :: Tweet -> String
-tweetText (Tweet text) = text
-
 ----- JSON parsing -----
 
 readJSONSearchResults :: JSValue -> Result SearchResults
@@ -42,11 +42,15 @@ readJSONSearchResults (JSObject value) = Ok $ SearchResults results
     Ok results = readJSONs jsValues
 
 readJSONTweet :: JSValue -> Result Tweet
-readJSONTweet (JSObject value) = Ok $ Tweet text
+readJSONTweet (JSObject value) = Ok $ Tweet text fromUser
     where
-    Just (JSString jsText) = lookup "text" $ fromJSObject value
+    properties = fromJSObject value
+    Just (JSString jsText) = lookup "text" properties
     -- TODO handle missing 'text' property
     text = fromJSString jsText
+    Just (JSString jsFromUser) = lookup "from_user" properties
+    -- TODO handle missing 'from_user' property
+    fromUser = fromJSString jsFromUser
 
 
 ----- Search functions -----

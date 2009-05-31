@@ -4,6 +4,10 @@ import System.Exit (exitFailure)
 import System.IO (hPutStrLn, stderr)
 import Twitter.Search
 
+----- Helpers -----
+formatTweet :: Tweet -> String
+formatTweet tweet = '@' : fromUser tweet ++ ": " ++ tweetText tweet
+
 ----- Handy command-line search client -----
 main = do
   args <- getArgs
@@ -11,7 +15,7 @@ main = do
     then err "Usage: twitsearch term [term ...]"
     else do
       results <- search $ unwords args
-      sequence $ map putStrLn $ map tweetText $ tweets results
+      sequence $ map putStrLn $ map formatTweet $ tweets results
 
 err :: String -> IO a
 err msg = do 
