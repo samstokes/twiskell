@@ -31,18 +31,28 @@ options = [Option ['n'] ["max"] (ReqArg read "NUM") "max results (default 15)"]
 parseArgs :: [String] -> IO SearchOptions
 parseArgs argv =
   case getOpt' Permute options argv of
-    ([count], term:terms, [], []) -> return SearchOptions {
-      resultsPerPage = count,
-      searchQuery = unwords (term:terms)
-      }
-    ([], term:terms, [], []) -> return $ basicOptions $ unwords (term:terms)
-    (_, _, unrecog:unrecogs, _) -> do
-      sequence $ map unrecognised (unrecog:unrecogs)
-      err $ usageInfo usage options
-    (_, _, _, errr:errrs) -> do
-      sequence $ map putStrLn (errr:errrs)
-      err $ usageInfo usage options
-    _ -> err $ usageInfo usage options
+    ([count], term:terms, []              , []        ) ->
+      return SearchOptions {
+        resultsPerPage = count,
+        searchQuery = unwords (term:terms)
+        }
+
+    ([]     , term:terms, []              , []        ) ->
+      return $ basicOptions $ unwords (term:terms)
+
+    (_      , _         , unrecog:unrecogs, _         ) ->
+      do
+        sequence $ map unrecognised (unrecog:unrecogs)
+        errUsage
+
+    (_      , _         , _               , errr:errrs) ->
+      do
+        sequence $ map putStrLn (errr:errrs)
+        errUsage
+
+    _ -> errUsage
+  where
+    errUsage = err $ usageInfo usage options
 
 unrecognised :: String -> IO ()
 unrecognised opt = putStrLn ("Unrecognised option " ++ opt)
