@@ -3,6 +3,8 @@ import Control.Monad
 import Network.HTTP
 import Network.URI
 import Text.JSON
+import Twitter.JSONUtils
+import Twitter.Types
 
 
 ----- Data types -----
@@ -16,13 +18,6 @@ data SearchOptions = SearchOptions {
 data SearchResults = SearchResults [Tweet]
   deriving (Show)
 
-data Tweet = Tweet {
-    tweetText :: String,
-    fromUser :: String
-  }
-  deriving (Show)
-
-
 ----- Instance declarations -----
 
 instance JSON SearchResults where
@@ -31,7 +26,7 @@ instance JSON SearchResults where
 
 instance JSON Tweet where
   showJSON _ = error "Not implemented"
-  readJSON = readJSONTweet
+  readJSON = readJSONSearchTweet
 
 
 ----- Data type helper functions -----
@@ -50,8 +45,8 @@ readJSONSearchResults (JSObject value) = Ok $ SearchResults results
     -- TODO handle missing 'results' property
     Ok results = readJSONs jsValues
 
-readJSONTweet :: JSValue -> Result Tweet
-readJSONTweet (JSObject value) = Ok $ Tweet text fromUser
+readJSONSearchTweet :: JSValue -> Result Tweet
+readJSONSearchTweet (JSObject value) = Ok $ Tweet text fromUser
     where
     properties = fromJSObject value
     Just (JSString jsText) = lookup "text" properties
@@ -70,13 +65,6 @@ search = searchJSON
 
 searchJSON :: JSON a => SearchOptions -> IO a
 searchJSON = (liftM forceDecode) . searchBody
-
--- decodes a JSON string, throwing a runtime error if unable to decode.
-forceDecode :: JSON a => String -> a
-forceDecode str =
-  json
-  where
-    Ok json = decode str
 
 searchBody :: SearchOptions -> IO String
 searchBody options =

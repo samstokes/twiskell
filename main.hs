@@ -5,6 +5,7 @@ import System.Environment (getArgs)
 import System.Exit (exitFailure)
 import System.IO (hPutStrLn, stderr)
 import Twitter.Search
+import Twitter.Types
 
 ----- Helpers -----
 formatTweet :: Tweet -> String
